@@ -37,3 +37,48 @@ class Blockchain:
     def hash(self,block):
         encode_bloc=json.dumps(block,sort_keys=True).encode()
         return hashlib.sha256(encode_bloc).hexdigest()
+    
+    def is_chain_valid(self,chain):
+        previous_bloc=chain[0]
+        block_index=1
+        while block_index<len(chain):
+            block=chain[block_index]
+            if block["previous_hash"] !=self.hash(previous_bloc):
+                return False
+            previous_proof=block['proof']
+            current_proof=block['proof']
+            hash_operation = hashlib.sha256(str(current_proof ** 2 - previous_proof ** 2).encode()).hexdigest()
+            if hash_operation[:4] !='0000':
+                return False
+        
+            previous_bloc=block
+            block_index +=1
+        return True
+
+app =Flask(__name__)
+blockchain=Blockchain()
+
+@app.route ('/mine_block', methods=['GET'])
+def mine_block():
+    previous_block=blockchain.get_previous_block()
+    previous_proof=previous_block['proof']
+    proof=blockchain.proof_of_work(previous_proof)
+    previous_hash=blockchain.hash(previous_block)
+
+    block=blockchain.create_blockchain(proof,previous_hash)
+
+    response={'message':'Block mined!',
+              'index':block['index'],
+              'timestamp':block['timestamp'],
+              'proof':block['proof'],
+              'previous_hash':block['previous_hash']}
+    
+    return jsonify(response),200
+
+@app.route('/get_chain', methods=['GET'])
+def get_chain():
+    response={'chain':blockchain.chain,
+              'length':len(blockchain.chain)}
+    return jsonify(response),200
+
+app.run(host='0.0.0.0',port=5000)
