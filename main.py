@@ -8,6 +8,7 @@ class Blockchain:
         self.chain=[]
         self.create_blockchain(proof=1, previous_hash='0')
     
+    #this function creates blockchain that which append to block
     def create_blockchain(self,proof,previous_hash):
         block={
             'index':len(self.chain)+1,
@@ -22,6 +23,7 @@ class Blockchain:
         last_block=self.chain[-1]
         return last_block
     
+    #this function solves block and cheack if it is correct
     def proof_of_work(self, previous_proof):
        new_proof = 1
        check_proof = False
@@ -33,10 +35,12 @@ class Blockchain:
                new_proof += 1
                
        return new_proof
+    
     def hash(self,block):
         encode_block=json.dumps(block,sort_keys=True).encode()
         return hashlib.sha256(encode_block).hexdigest()
     
+    #this function cheacks is blockchain valid
     def is_chain_valid(self,chain):
         previous_block=chain[0]
         block_index=1
